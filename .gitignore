@@ -15,7 +15,6 @@ dist
 
 # misc
 .DS_Store
-.env.local
 .env.development.local
 .env.test.local
 .env.production.local
@@ -30,3 +29,4 @@ TEST.config.ts
 FIREBASE_CONFIG.js
 yarn.lock
 src-demo/yarn.lock
+config.bat
