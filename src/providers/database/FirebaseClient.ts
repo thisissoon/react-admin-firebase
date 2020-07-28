@@ -13,6 +13,7 @@ import {
   parseDocGetAllUploads,
 } from "../../misc";
 import { set } from 'lodash'
+import _ from "lodash";
 
 export class FirebaseClient implements IFirebaseClient {
   private db: FirebaseFirestore;
@@ -271,12 +272,18 @@ export class FirebaseClient implements IFirebaseClient {
     log("apiGetMany", { resourceName, resource: r, params });
     const ids = params.ids;
     const matchDocSnaps = await Promise.all(
-      ids.map(id => r.collection.doc(id).get())
+      ids.map(idObj => {
+        if (typeof idObj === 'string') {
+          return r.collection.doc(idObj).get()
+        }
+        return r.collection.doc(idObj.___refid).get()
+      })
     );
     const matches = matchDocSnaps.map(snap => {
       return { ...snap.data(), id: snap.id };
     });
     const permittedData = this.options.softDelete ? matches.filter(row => !row['deleted']) : matches;
+    log("apiGetMany", { ids, matchDocSnaps, matches, permittedData, });
     return {
       data: permittedData
     };

@@ -1,3 +1,5 @@
+import { ParsedRefDoc } from "./internal.models";
+
 export function parseAllDocFromFirestore(obj: {}) {
   const isObject = !!obj && typeof obj === "object";
   if (!isObject) {
@@ -31,7 +33,10 @@ export function recusivelyCheckObjectValue(input: any) {
     typeof input.parent === "object" &&
     typeof input.path === "string";
   if (isDocumentReference) {
-    const parsed = { ___refdocument: input.path }
+    const parsed: ParsedRefDoc = { 
+      ___refpath: input.path, 
+      ___refid: input.id 
+    };
     return parsed;
   }
   const isObject = typeof input === "object";

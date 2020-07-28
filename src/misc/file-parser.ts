@@ -1,3 +1,5 @@
+import { ParsedRefDoc } from "./internal.models";
+
 interface ParsedUpload {
   fieldDotsPath: string;
   fieldSlashesPath: string;
@@ -57,12 +59,12 @@ export function recusivelyParseObjectValue(
   if (!isObject) {
     return;
   }
-  const isRefField = !!input && input.hasOwnProperty("___refdocument");
+  const isRefField = !!input && input.hasOwnProperty("___refid");
   if (isRefField) {
-    const refDoc = input as ParsedRefDoc
+    const refDoc = input as ParsedRefDoc;
     result.refdocs.push({
       fieldDotsPath: fieldPath,
-      refPath: refDoc.___refdocument
+      refPath: refDoc.___refpath
     });
     return;
   }
@@ -81,8 +83,4 @@ export function recusivelyParseObjectValue(
     recusivelyParseObjectValue(value, `${fieldPath}.${key}`, result);
   });
   return input;
-}
-
-interface ParsedRefDoc {
-  ___refdocument: string
 }

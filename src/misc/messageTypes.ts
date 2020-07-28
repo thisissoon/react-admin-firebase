@@ -1,5 +1,6 @@
 // Firebase types
 import { CollectionReference } from "@firebase/firestore-types";
+import { ParsedRefDoc } from "./internal.models";
 
 // PARAMETERS
 export namespace messageTypes {
@@ -56,7 +57,7 @@ export namespace messageTypes {
   }
 
   export interface IParamsGetMany {
-    ids: string[];
+    ids: (string | ParsedRefDoc)[];
   }
 
   export interface IParamsGetManyReference {

@@ -24,4 +24,28 @@ describe("api methods", () => {
     expect(result.data[0]['id']).toBe('test22222');
     expect(result.data[1]['id']).toBe('asdads');
   }, 100000);
+
+  test("FirebaseClient list docs", async () => {
+    const userDoc = {
+      id: '1232222',
+      name: 'Albert'
+    };
+    const userDocs = [userDoc];
+    const collName = "list-mes2";
+    const collection = fire.db().collection(collName);
+    await Promise.all(
+      userDocs.map((user) => collection.doc(user.id).set({ name: user.name }))
+    );
+
+    const client = new FirebaseClient(fire, {});
+    const result = await client.apiGetMany(collName, {
+      ids: [{
+        ___refid: userDoc.id,
+        ___refpath: collName + "/" + userDoc.id
+      }],
+    });
+    expect(result.data.length).toBe(2);
+    expect(result.data[0]['id']).toBe('test22222');
+    expect(result.data[1]['id']).toBe('asdads');
+  }, 100000);
 });
