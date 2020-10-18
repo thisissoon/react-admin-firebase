@@ -1,7 +1,7 @@
 import { messageTypes } from './../misc/messageTypes';
 import firebase from "firebase/app";
 import "firebase/auth";
-import { FirebaseAuth } from "@firebase/auth-types";
+import { FirebaseAuth, User } from "@firebase/auth-types";
 import { log, CheckLogging, retrieveStatusTxt } from "../misc";
 import { RAFirebaseOptions } from "./RAFirebaseOptions";
 import { FirebaseWrapper } from "./database/firebase/FirebaseWrapper";
@@ -78,7 +78,7 @@ class AuthClient {
     return this.getUserLogin();
   }
 
-  public getUserLogin() {
+  public getUserLogin(): Promise<User> {
     return new Promise((resolve, reject) => {
       if (this.auth.currentUser) return resolve(this.auth.currentUser);
       const unsubscribe = this.auth.onAuthStateChanged(user => {
@@ -107,6 +107,18 @@ class AuthClient {
     }
   }
 
+  public async HandleGetIdentity() {
+    try {
+      const { uid, displayName, photoURL } = await this.getUserLogin();      
+      return { id: uid, fullName: displayName, avatar: photoURL }
+    } catch (e) {
+      log("HandleGetIdentity: no user is logged in", {
+        e
+      });
+      return null;
+    }
+  }
+  
   public async HandleGetJWTAuthTime() {
     try {
       const user = await this.getUserLogin();
@@ -194,6 +206,7 @@ export function AuthProvider(firebaseConfig: {}, options: RAFirebaseOptions) {
     checkAuth: () => auth.HandleAuthCheck(),
     checkError: error => auth.HandleAuthError(error),
     getPermissions: () => auth.HandleGetPermissions(),
+    getIdentity: () => auth.HandleGetIdentity(),
     getJWTAuthTime: () => auth.HandleGetJWTAuthTime(),
     getJWTExpirationTime: () => auth.HandleGetJWTExpirationTime(),
     getJWTSignInProvider: () => auth.HandleGetJWTSignInProvider(),
