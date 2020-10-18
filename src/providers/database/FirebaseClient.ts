@@ -1,3 +1,4 @@
+import { ParsedRefDoc } from './../../misc/file-parser';
 import { FirebaseFirestore } from "@firebase/firestore-types";
 import { IResource, ResourceManager } from "./ResourceManager";
 import { RAFirebaseOptions } from "../RAFirebaseOptions";
@@ -151,6 +152,7 @@ export class FirebaseClient implements IFirebaseClient {
     const docObj = { ...data };
     this.checkRemoveIdField(docObj);
     await this.addUpdatedByFields(docObj);
+
     r.collection
       .doc(id)
       .update(docObj)
@@ -286,7 +288,15 @@ export class FirebaseClient implements IFirebaseClient {
     log("apiGetMany", { resourceName, resource: r, params });
     const ids = params.ids;
     const matchDocSnaps = await Promise.all(
-      ids.map(id => r.collection.doc(id).get())
+      ids.map((id: ParsedRefDoc | string) => {
+        if (typeof id == 'object' && id.___refdocument) {
+          const docId = id.___refdocument.split('/').pop();
+          return r.collection.doc(docId).get();
+        }
+        if (typeof id == 'string') {
+          return r.collection.doc(id).get();
+        }
+      })
     );
     const matches = matchDocSnaps.map(snap => {
       return { ...snap.data(), id: snap.id };
@@ -308,6 +318,48 @@ export class FirebaseClient implements IFirebaseClient {
     };
   }
   public async apiGetManyReference(
+    resourceName: string,
+    params: messageTypes.IParamsGetManyReference
+  ): Promise<messageTypes.IResponseGetManyReference> {
+    const r = await this.tryGetResource(resourceName, "REFRESH");
+    log("apiGetManyReference", { resourceName, resource: r, params });
+    const data = r.list;
+    const targetField = params.target;
+    const targetValue = params.id;
+    const filterSafe = params.filter || {};
+    let softDeleted = data;
+    if (this.options.softDelete) {
+      softDeleted = data.filter(doc => !doc['deleted'])
+    }
+    const filteredData = filterArray(softDeleted, filterSafe);
+    const targetIdFilter = {};
+    targetIdFilter[targetField] = targetValue;
+    const permittedData = filterArray(filteredData, targetIdFilter);
+    if (params.sort != null) {
+      const { field, order } = params.sort;
+      if (order === "ASC") {
+        sortArray(permittedData, field, "asc");
+      } else {
+        sortArray(permittedData, field, "desc");
+      }
+    }
+    const pageStart = (params.pagination.page - 1) * params.pagination.perPage;
+    const pageEnd = pageStart + params.pagination.perPage;
+    const dataPage = permittedData.slice(pageStart, pageEnd);
+    const total = permittedData.length;
+
+    if (this.options.relativeFilePaths) {
+      const data = await Promise.all(
+        permittedData.map((doc) =>
+          recursivelyMapStorageUrls(this.fireWrapper, doc)
+        )
+      );
+      return { data, total };
+    }
+
+    return { data: dataPage, total };
+  }
+  public async apiGetManyReferenceFirestore(
     resourceName: string,
     params: messageTypes.IParamsGetManyReference
   ): Promise<messageTypes.IResponseGetManyReference> {

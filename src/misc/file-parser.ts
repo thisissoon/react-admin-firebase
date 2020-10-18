@@ -86,7 +86,7 @@ export function recusivelyParseObjectValue(
   return input;
 }
 
-interface ParsedRefDoc {
+export interface ParsedRefDoc {
   ___refdocument: string
 }
 export const recursivelyMapStorageUrls = async (
