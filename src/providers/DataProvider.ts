@@ -53,6 +53,9 @@ export function DataProvider(
         case GET_MANY_REFERENCE:
           res = await fb.apiGetManyReference(resourceName, params);
           break;
+        case 'GET_MANY_REFERENCE_FIRESTORE':
+          res = await fb.apiGetManyReferenceFirestore(resourceName, params);
+          break;
         case GET_LIST:
           res = await fb.apiGetList(resourceName, params);
           break;

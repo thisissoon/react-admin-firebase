@@ -11,4 +11,6 @@ export interface RAFirebaseOptions {
   softDelete?: boolean;
   associateUsersById?: boolean;
   metaFieldCasing?: 'lower' | 'camel' | 'snake' | 'pascal' | 'kebab';
+  relativeFilePaths?: boolean;
+  useFileNamesInStorage?: boolean;
 }

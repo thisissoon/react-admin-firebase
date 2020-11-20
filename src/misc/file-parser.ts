@@ -1,4 +1,6 @@
 import { ParsedRefDoc } from "./internal.models";
+import { logError } from "./logger";
+import { IFirebaseWrapper } from "../providers/database/firebase/IFirebaseWrapper";
 
 interface ParsedUpload {
   fieldDotsPath: string;
@@ -84,3 +86,46 @@ export function recusivelyParseObjectValue(
   });
   return input;
 }
+
+export interface ParsedRefDoc {
+  ___refdocument: string
+}
+export const recursivelyMapStorageUrls = async (
+  fireWrapper: IFirebaseWrapper,
+  fieldValue: any
+): Promise<any> => {
+  const isArray = Array.isArray(fieldValue);
+  const isObject = !isArray && typeof fieldValue === "object";
+  const isFileField = isObject && !!fieldValue && fieldValue.hasOwnProperty("src");
+  if (isFileField) {
+    try {
+      const src = await fireWrapper.storage().ref(fieldValue.src).getDownloadURL();
+      return {
+        ...fieldValue,
+        src
+      };
+    } catch (error) {
+      logError(`Error when getting download URL`, {
+        error
+      });
+      return fieldValue;
+    }
+  } else if (isObject) {
+    for (let key in fieldValue) {
+      if (fieldValue.hasOwnProperty(key)) {
+        const value = fieldValue[key];
+        fieldValue[key] = await recursivelyMapStorageUrls(fireWrapper, value);
+      }
+    }
+
+    return fieldValue;
+  } else if (isArray) {
+    for (let i = 0; i < fieldValue.length; i++) {
+      fieldValue[i] = await recursivelyMapStorageUrls(fireWrapper, fieldValue[i])
+    }
+
+    return fieldValue;
+  }
+
+  return fieldValue;
+};

@@ -56,8 +56,9 @@ export namespace messageTypes {
     ids: string[];
   }
 
+  export type IdMaybeRef = string | ParsedRefDoc;
   export interface IParamsGetMany {
-    ids: (string | ParsedRefDoc)[];
+    ids: IdMaybeRef[];
   }
 
   export interface IParamsGetManyReference {
