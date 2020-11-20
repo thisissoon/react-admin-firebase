@@ -1,6 +1,5 @@
 import { MakeMockClient } from "./utils/test-helpers";
 import { GetOne } from "../../src/providers/queries";
-import { ParsedRefDoc } from "../../src/misc/internal.models";
 
 describe("api methods", () => {
   test("FireClient apiGetOne", async () => {
@@ -48,31 +47,22 @@ describe("api methods", () => {
     expect(data.b.c.c1).toBeInstanceOf(Date);
   }, 100000);
 
-  test("Check refdocument parser works", async () => {
+  test("FireClient apiGetOne, with refdocument", async () => {
     const client = MakeMockClient();
     const collName = "get-one";
     const docId = "12345";
     const collection = client.db().collection(collName);
+    const refId = '22222';
+    const refFullPath = 'ascasc/' + refId;
     const testData = {
-      refdoc: client.db().doc("some/doc"),
+      myrefdoc: client.db().doc(refFullPath),
     };
     await collection.doc(docId).set(testData);
 
-    const result = await GetOne(
-      collName,
-      {
-        id: docId,
-      },
-      client
-    );
+    const result = await GetOne(collName, { id: docId }, client);
     const data = result.data as any;
     expect(data).toBeTruthy();
-    const expectedDocTranslated = {
-      refdoc: {
-        ___refid: 'doc',
-        ___refpath: 'some/doc'
-      } as ParsedRefDoc
-    }
-    expect(data).toMatchObject(expectedDocTranslated);
+    expect(data['myrefdoc']).toBe(refId);
+    expect(data['___REF_FULLPATH_myrefdoc']).toBe(refFullPath);
   }, 100000);
 });

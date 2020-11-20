@@ -1,5 +1,5 @@
 import { set } from "lodash";
-import { joinPaths, log, logError, parseDocGetAllUploads } from "../../misc";
+import { joinPaths, log, logError, translateDocToFirestore } from "../../misc";
 import { RAFirebaseOptions } from "../RAFirebaseOptions";
 import { IFirebaseWrapper } from "./firebase/IFirebaseWrapper";
 import { IResource, ResourceManager } from "./ResourceManager";
@@ -29,7 +29,7 @@ export class FireClient {
     }
     const docPath = r.collection.doc(id).path;
 
-    const result = parseDocGetAllUploads(data);
+    const result = translateDocToFirestore(data);
     await Promise.all(
       result.uploads.map(async (u) => {
         const link = await this.uploadAndGetLink(

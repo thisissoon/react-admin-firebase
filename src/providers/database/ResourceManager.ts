@@ -11,9 +11,13 @@ import {
   log,
   getAbsolutePath,
   messageTypes,
-  parseAllDocFromFirestore,
+  translateDocFromFirestore,
   logWarn,
+  RefDocFound,
+  REF_INDENTIFIER,
+  applyRefDocs,
 } from "../../misc";
+import { set } from "lodash";
 
 export interface IResource {
   path: string;
@@ -156,10 +160,12 @@ export class ResourceManager {
       return {};
     }
     const data = doc.data();
-    parseAllDocFromFirestore(data);
+    const result = translateDocFromFirestore(data);
+    const dataWithRefs = applyRefDocs(result.parsedDoc, result.refdocs);
     // React Admin requires an id field on every document,
     // So we can just using the firestore document id
-    return { id: doc.id, ...data };
+    const returnDoc = { id: doc.id, ...dataWithRefs };
+    return returnDoc;
   }
 
   public async getUserLogin(): Promise<User> {

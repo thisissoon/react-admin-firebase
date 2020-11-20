@@ -1,4 +1,1 @@
-export interface ParsedRefDoc {
-  ___refpath: string;
-  ___refid: string;
-}
+export const REF_INDENTIFIER = "___REF_FULLPATH_";

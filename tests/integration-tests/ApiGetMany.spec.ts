@@ -1,6 +1,5 @@
 import { MakeMockClient } from "./utils/test-helpers";
 import { GetMany } from "../../src/providers/queries";
-import { ParsedRefDoc } from "../../src/misc/internal.models";
 
 describe("api methods", () => {
   test("FireClient list docs", async () => {
@@ -47,12 +46,7 @@ describe("api methods", () => {
     const result = await GetMany(
       collName,
       {
-        ids: [
-          {
-            ___refid: '11',
-            ___refpath: collName + "/" + '11',
-          } as ParsedRefDoc as any
-        ],
+        ids: ["11","22"],
       },
       client
     );
