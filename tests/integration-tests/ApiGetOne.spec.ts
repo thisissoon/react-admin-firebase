@@ -1,5 +1,6 @@
 import { MakeMockClient } from "./utils/test-helpers";
 import { GetOne } from "../../src/providers/queries";
+import { ParsedRefDoc } from "../../src/misc/internal.models";
 
 describe("api methods", () => {
   test("FireClient apiGetOne", async () => {
@@ -66,6 +67,12 @@ describe("api methods", () => {
     );
     const data = result.data as any;
     expect(data).toBeTruthy();
-    expect(data.refdoc).toMatchObject({ ___refdocument: "some/doc" });
+    const expectedDocTranslated = {
+      refdoc: {
+        ___refid: 'doc',
+        ___refpath: 'some/doc'
+      } as ParsedRefDoc
+    }
+    expect(data).toMatchObject(expectedDocTranslated);
   }, 100000);
 });

@@ -68,9 +68,9 @@ describe("timestamp-parser tests", () => {
   });
 
   test("check converts document references", () => {
-    const doc = { ref: makeDocumentRef("something/here") };
+    const doc = { ref: makeDocumentRef("something/here") } as any;
     recusivelyCheckObjectValue(doc);
-    expect(doc.ref["___refdocument"]).toBe("something/here");
+    expect(doc.ref["___refpath"]).toBe("something/here");
   });
 });
 

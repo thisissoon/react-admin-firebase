@@ -1,5 +1,6 @@
 import { MakeMockClient } from "./utils/test-helpers";
 import { GetMany } from "../../src/providers/queries";
+import { ParsedRefDoc } from "../../src/misc/internal.models";
 
 describe("api methods", () => {
   test("FireClient list docs", async () => {
@@ -23,17 +24,24 @@ describe("api methods", () => {
     expect(result.data[1]["id"]).toBe("asdads");
   }, 100000);
 
-  test("FirebaseClient list docs", async () => {
+  test("FirebaseClient list docs from refs", async () => {
     const client = MakeMockClient();
-    const userDoc = {
-      id: "1232222",
-      name: "Albert",
-    };
-    const userDocs = [userDoc];
+    const docs = [
+      {
+        id: "11",
+        name: "Albert",
+      },
+      {
+        id: "22",
+        name: "Stanburg",
+      },
+    ];
     const collName = "list-mes2";
-    const collection = client.db().collection(collName);
+    const db = client.db();
     await Promise.all(
-      userDocs.map((user) => collection.doc(user.id).set({ name: user.name }))
+      docs.map((user) =>
+        db.doc(collName + "/" + user.id).set({ name: user.name })
+      )
     );
 
     const result = await GetMany(
@@ -41,15 +49,15 @@ describe("api methods", () => {
       {
         ids: [
           {
-            ___refid: userDoc.id,
-            ___refpath: collName + "/" + userDoc.id,
-          },
-        ] as any,
+            ___refid: '11',
+            ___refpath: collName + "/" + '11',
+          } as ParsedRefDoc as any
+        ],
       },
       client
     );
     expect(result.data.length).toBe(2);
-    expect(result.data[0]["id"]).toBe("test22222");
-    expect(result.data[1]["id"]).toBe("asdads");
+    expect(result.data[0]["id"]).toBe("11");
+    expect(result.data[1]["id"]).toBe("22");
   }, 100000);
 });

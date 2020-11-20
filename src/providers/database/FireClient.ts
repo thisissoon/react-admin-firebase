@@ -29,9 +29,9 @@ export class FireClient {
     }
     const docPath = r.collection.doc(id).path;
 
-    const uploads = parseDocGetAllUploads(data);
+    const result = parseDocGetAllUploads(data);
     await Promise.all(
-      uploads.uploads.map(async (u) => {
+      result.uploads.map(async (u) => {
         const link = await this.uploadAndGetLink(
           u.rawFile,
           docPath,
