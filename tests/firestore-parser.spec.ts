@@ -2,7 +2,7 @@ import {
   parseAllDocFromFirestore,
   recusivelyCheckObjectValue,
 } from "../src/misc";
-import { initFireWrapper } from "./integration-tests/utils/test-helpers";
+import { MakeMockClient } from "./integration-tests/utils/test-helpers";
 
 describe("timestamp-parser tests", () => {
   test("retains number", () => {
@@ -78,10 +78,10 @@ function makeTimestamp() {
   return new MockTimeStamp();
 }
 
-const fire = initFireWrapper("testId", { disableMeta: true });
+const client = MakeMockClient({ disableMeta: true });
 
 function makeDocumentRef(path: string): firebase.firestore.DocumentReference {
-  return fire.db().doc(path);
+  return client.db().doc(path);
 }
 
 class MockTimeStamp {

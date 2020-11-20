@@ -1,6 +1,6 @@
 import { ParsedRefDoc } from "./internal.models";
 
-export function parseAllDocFromFirestore(obj: {}) {
+export function parseAllDocFromFirestore(obj: any) {
   const isObject = !!obj && typeof obj === "object";
   if (!isObject) {
     return;
@@ -11,7 +11,7 @@ export function parseAllDocFromFirestore(obj: {}) {
   });
 }
 
-export function recusivelyCheckObjectValue(input: any) {
+export function recusivelyCheckObjectValue(input: any): any {
   const isFalsey = !input;
   if (isFalsey) {
     return input;
@@ -26,16 +26,16 @@ export function recusivelyCheckObjectValue(input: any) {
   }
   const isArray = Array.isArray(input);
   if (isArray) {
-    return input.map((value) => recusivelyCheckObjectValue(value));
+    return (input as any[]).map((value) => recusivelyCheckObjectValue(value));
   }
   const isDocumentReference =
     typeof input.id === "string" &&
     typeof input.parent === "object" &&
     typeof input.path === "string";
   if (isDocumentReference) {
-    const parsed: ParsedRefDoc = { 
-      ___refpath: input.path, 
-      ___refid: input.id 
+    const parsed: ParsedRefDoc = {
+      ___refpath: input.path,
+      ___refid: input.id,
     };
     return parsed;
   }

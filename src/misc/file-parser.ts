@@ -18,7 +18,7 @@ interface ParseResult {
   refdocs: ParsedDocRef[]
 }
 
-export function parseDocGetAllUploads(obj: {}): ParseResult {
+export function parseDocGetAllUploads(obj: any): ParseResult {
   const isObject = !!obj && typeof obj === "object";
   const result: ParseResult = {
     uploads: [],
@@ -87,9 +87,6 @@ export function recusivelyParseObjectValue(
   return input;
 }
 
-export interface ParsedRefDoc {
-  ___refdocument: string
-}
 export const recursivelyMapStorageUrls = async (
   fireWrapper: IFirebaseWrapper,
   fieldValue: any
