@@ -6,18 +6,14 @@ import {
 } from "@firebase/firestore-types";
 import { RAFirebaseOptions } from "../RAFirebaseOptions";
 import { IFirebaseWrapper } from "./firebase/IFirebaseWrapper";
-import { User } from "@firebase/auth-types";
 import {
   log,
   getAbsolutePath,
   messageTypes,
   translateDocFromFirestore,
   logWarn,
-  RefDocFound,
-  REF_INDENTIFIER,
   applyRefDocs,
 } from "../../misc";
-import { set } from "lodash";
 
 export interface IResource {
   path: string;
@@ -39,7 +35,7 @@ export class ResourceManager {
   ) {
     this.db = fireWrapper.db();
 
-    this.fireWrapper.OnUserLogout((user) => {
+    this.fireWrapper.OnUserLogout(() => {
       this.resources = {};
     });
   }
@@ -73,7 +69,7 @@ export class ResourceManager {
       relativePath,
       collectionQuery,
     });
-    await this.initPath(relativePath, collectionQuery);
+    await this.initPath(relativePath);
 
     const resource: IResource = this.resources[relativePath];
     if (!resource) {
@@ -89,7 +85,7 @@ export class ResourceManager {
     collectionQuery: messageTypes.CollectionQueryType | undefined
   ) {
     log("resourceManager.RefreshResource", { relativePath, collectionQuery });
-    await this.initPath(relativePath, collectionQuery);
+    await this.initPath(relativePath);
     const resource = this.resources[relativePath];
 
     const collection = resource.collection;
@@ -123,9 +119,7 @@ export class ResourceManager {
   }
 
   private async initPath(
-    relativePath: string,
-    collectionQuery?: messageTypes.CollectionQueryType
-  ): Promise<void> {
+    relativePath: string  ): Promise<void> {
     const rootRef = this.options && this.options.rootRef;
     const absolutePath = getAbsolutePath(rootRef, relativePath);
     const hasBeenInited = !!this.resources[relativePath];
@@ -168,20 +162,28 @@ export class ResourceManager {
     return returnDoc;
   }
 
-  public async getUserLogin(): Promise<User> {
-    return new Promise((resolve, reject) => {
-      this.fireWrapper.auth().onAuthStateChanged((user) => {
-        if (user) {
-          resolve(user);
-        } else {
-          reject("getUserLogin() no user logged in");
-        }
-      });
-    });
+  public async getUserIdentifier(): Promise<string> {
+    const identifier = this.options.associateUsersById
+      ? await this.getCurrentUserId()
+      : await this.getCurrentUserEmail();
+    return identifier;
   }
 
-  private removeResource(resourceName: string) {
-    delete this.resources[resourceName];
+  private async getCurrentUserEmail() {
+    const user = await this.fireWrapper.GetUserLogin();
+    if (user) {
+      return user.email as string;
+    } else {
+      return "annonymous user";
+    }
+  }
+  private async getCurrentUserId() {
+    const user = await this.fireWrapper.GetUserLogin();
+    if (user) {
+      return user.uid;
+    } else {
+      return "annonymous user";
+    }
   }
 
   private applyQuery(
