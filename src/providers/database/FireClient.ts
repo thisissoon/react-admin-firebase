@@ -1,5 +1,12 @@
 import { set } from "lodash";
-import { joinPaths, log, logError, translateDocToFirestore } from "../../misc";
+import {
+  AddCreatedByFields,
+  AddUpdatedByFields,
+  joinPaths,
+  log,
+  logError,
+  translateDocToFirestore
+} from "../../misc";
 import { RAFirebaseOptions } from "../RAFirebaseOptions";
 import { IFirebaseWrapper } from "./firebase/IFirebaseWrapper";
 import { IResource, ResourceManager } from "./ResourceManager";
@@ -45,65 +52,11 @@ export class FireClient {
   }
 
   public async addCreatedByFields(obj: any) {
-    if (this.options.disableMeta) {
-      return;
-    }
-    const currentUserIdentifier = this.options.associateUsersById
-      ? await this.getCurrentUserId()
-      : await this.getCurrentUserEmail();
-    switch (this.options.metaFieldCasing) {
-      case "camel":
-        obj.createDate = this.fireWrapper.serverTimestamp();
-        obj.createdBy = currentUserIdentifier;
-        break;
-      case "snake":
-        obj.create_date = this.fireWrapper.serverTimestamp();
-        obj.created_by = currentUserIdentifier;
-        break;
-      case "pascal":
-        obj.CreateDate = this.fireWrapper.serverTimestamp();
-        obj.CreatedBy = currentUserIdentifier;
-        break;
-      case "kebab":
-        obj["create-date"] = this.fireWrapper.serverTimestamp();
-        obj["created-by"] = currentUserIdentifier;
-        break;
-      default:
-        obj.createdate = this.fireWrapper.serverTimestamp();
-        obj.createdby = currentUserIdentifier;
-        break;
-    }
+    return AddCreatedByFields(obj, this.fireWrapper, this.rm, this.options);
   }
 
   public async addUpdatedByFields(obj: any) {
-    if (this.options.disableMeta) {
-      return;
-    }
-    const currentUserIdentifier = this.options.associateUsersById
-      ? await this.getCurrentUserId()
-      : await this.getCurrentUserEmail();
-    switch (this.options.metaFieldCasing) {
-      case "camel":
-        obj.lastUpdate = this.fireWrapper.serverTimestamp();
-        obj.updatedBy = currentUserIdentifier;
-        break;
-      case "snake":
-        obj.last_update = this.fireWrapper.serverTimestamp();
-        obj.updated_by = currentUserIdentifier;
-        break;
-      case "pascal":
-        obj.LastUpdate = this.fireWrapper.serverTimestamp();
-        obj.UpdatedBy = currentUserIdentifier;
-        break;
-      case "kebab":
-        obj["last-update"] = this.fireWrapper.serverTimestamp();
-        obj["updated-by"] = currentUserIdentifier;
-        break;
-      default:
-        obj.lastupdate = this.fireWrapper.serverTimestamp();
-        obj.updatedby = currentUserIdentifier;
-        break;
-    }
+    return AddUpdatedByFields(obj, this.fireWrapper, this.rm, this.options);
   }
 
   private async uploadAndGetLink(
@@ -146,23 +99,6 @@ export class FireClient {
           storageError,
         });
       }
-    }
-  }
-
-  private async getCurrentUserEmail() {
-    const user = await this.rm.getUserLogin();
-    if (user) {
-      return user.email;
-    } else {
-      return "annonymous user";
-    }
-  }
-  private async getCurrentUserId() {
-    const user = await this.rm.getUserLogin();
-    if (user) {
-      return user.uid;
-    } else {
-      return "annonymous user";
     }
   }
 }
