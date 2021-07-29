@@ -10,10 +10,6 @@ node_modules
 # production
 /build
 
-# ignore dist now
-/dist
-dist
-
 #ide
 .idea
 
