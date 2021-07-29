@@ -1,4 +1,4 @@
-import { set } from "lodash";
+import { set } from 'lodash';
 import {
   AddCreatedByFields,
   AddUpdatedByFields,
@@ -7,10 +7,16 @@ import {
   log,
   logError,
   parseDocGetAllUploads,
-} from "../../misc";
-import { RAFirebaseOptions } from "../options";
-import { IFirebaseWrapper } from "./firebase/IFirebaseWrapper";
-import { IResource, ResourceManager } from "./ResourceManager";
+} from '../../misc';
+import { RAFirebaseOptions } from '../options';
+import { IFirebaseWrapper } from './firebase/IFirebaseWrapper';
+import { IResource, ResourceManager } from './ResourceManager';
+import { v4 as uuidv4 } from 'uuid';
+
+interface UploadRes {
+  id: string;
+  src: string;
+}
 
 export class FireClient {
   public rm: ResourceManager;
@@ -41,13 +47,14 @@ export class FireClient {
     const uploads = parseDocGetAllUploads(data);
     await Promise.all(
       uploads.map(async (u) => {
-        const link = await this.uploadAndGetLink(
+        const uploadRes = await this.uploadAndGetLink(
           u.rawFile,
           docPath,
           u.fieldSlashesPath,
           !!this.options.useFileNamesInStorage
         );
-        set(data, u.fieldDotsPath + ".src", link);
+        set(data, u.fieldDotsPath + '.src', uploadRes?.src);
+        set(data, u.fieldDotsPath + '.id', uploadRes?.id);
       })
     );
     return data;
@@ -66,38 +73,43 @@ export class FireClient {
     docPath: string,
     fieldPath: string,
     useFileName: boolean
-  ): Promise<string | undefined> {
-    const storagePath = useFileName
-      ? joinPaths(docPath, fieldPath, rawFile.name)
-      : joinPaths(docPath, fieldPath);
-    return this.saveFile(storagePath, rawFile);
+  ): Promise<UploadRes | undefined> {
+    // create a storage path compatible with flite and return the image id
+    const id = uuidv4();
+    const storagePath = `${id}/${id}`;
+    console.log('storage path', storagePath);
+    const path = await this.saveFile(storagePath, rawFile);
+    return {
+      id: id,
+      src: path || '',
+    };
   }
 
   private async saveFile(
     storagePath: string,
     rawFile: any
   ): Promise<string | undefined> {
-    log("saveFile() saving file...", { storagePath, rawFile });
+    log('saveFile() saving file...', { storagePath, rawFile });
     const task = this.fireWrapper.storage().ref(storagePath).put(rawFile);
     try {
       const taskResult: firebase.storage.UploadTaskSnapshot = await new Promise(
         (res, rej) => task.then(res).catch(rej)
       );
       const getDownloadURL = await taskResult.ref.getDownloadURL();
-      log("saveFile() saved file", {
+      log('saveFile() saved file', {
         storagePath,
         taskResult,
         getDownloadURL,
       });
       return this.options.relativeFilePaths ? storagePath : getDownloadURL;
     } catch (storageError) {
-      if (storageError.code === "storage/unknown") {
+      if (storageError.code === 'storage/unknown') {
         logError(
           'saveFile() error saving file, No bucket found! Try clicking "Get Started" in firebase -> storage',
           { storageError }
         );
       } else {
-        logError("saveFile() error saving file", {
+        logError('saveFile() error saving file', {
           storageError,
         });
       }

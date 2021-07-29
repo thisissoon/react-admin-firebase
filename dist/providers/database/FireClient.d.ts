@@ -1,7 +1,7 @@
-import { IFirestoreLogger } from "../../misc";
-import { RAFirebaseOptions } from "../options";
-import { IFirebaseWrapper } from "./firebase/IFirebaseWrapper";
-import { IResource, ResourceManager } from "./ResourceManager";
+import { IFirestoreLogger } from '../../misc';
+import { RAFirebaseOptions } from '../options';
+import { IFirebaseWrapper } from './firebase/IFirebaseWrapper';
+import { IResource, ResourceManager } from './ResourceManager';
 export declare class FireClient {
     fireWrapper: IFirebaseWrapper;
     options: RAFirebaseOptions;
